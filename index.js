@@ -52,6 +52,17 @@ async function run() {
             }
         }
 
+        app.get('/jwt', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            if (user) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1d' })
+                return res.send({ token: token });
+            }
+            res.status(403).send({ token: '' })
+        })
+        
         //add & update  user
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -67,6 +78,15 @@ async function run() {
 
             res.send({ result, token })
         })
+
+        // get user by email
+        app.get('/role/:email', verifyToken, async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            res.send(user)
+        })
+
 
         // add booking 
         app.post('/addBooking', async (req, res) => {
