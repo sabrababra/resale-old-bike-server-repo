@@ -102,6 +102,13 @@ async function run() {
             const bikes = await bikesCollection.find(query).toArray();
             res.send(bikes);
         })
+
+        // post bike 
+        app.post('/addProduct', async (req, res) => {
+            const product = req.body;
+            const result = await bikesCollection.insertOne(product);
+            res.send(result);
+        });
     }
     finally {
 
