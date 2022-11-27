@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-require('dotenv').config();
+require("dotenv").config();
 const jwt = require('jsonwebtoken');
 
 const app = express();
@@ -19,19 +19,23 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 // token function
-const verifyToken = (req, res, next) => {
+function verifyJWT(req, res, next) {
+
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-        return res.status(401).send({ message: 'Unauthorized access' })
+        return res.status(401).send('unauthorized access');
     }
-    const token = authHeader.split(' ')[1]
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
         if (err) {
-            return res.status(403).send({ message: 'Forbidden access' })
+            return res.status(403).send({ message: 'forbidden access' })
         }
-        req.decoded = decoded
-        next()
+        req.decoded = decoded;
+        next();
     })
+
 }
 
 
@@ -40,7 +44,7 @@ async function run() {
         const bikesCollection = client.db('resaleBike').collection('bikeCollection');
         const usersCollection = client.db('resaleBike').collection('user');
         const bookingCollection = client.db('resaleBike').collection('booking');
-        const advertiseCollection = client.db('resaleBike').collection('advertise');
+        // const advertiseCollection = client.db('resaleBike').collection('advertise');
 
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email;
@@ -59,10 +63,10 @@ async function run() {
             const user = await usersCollection.findOne(query);
             if (user) {
                 const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1d' })
-                return res.send({ token: token });
+                return res.send({ accessToken: token });
             }
-            res.status(403).send({ token: '' })
-        })
+            res.status(403).send({ accessToken: '' })
+        });
 
         //add & update  user
         app.put('/user/:email', async (req, res) => {
@@ -81,7 +85,7 @@ async function run() {
         })
 
         // get user by email
-        app.get('/role/:email', verifyToken, async (req, res) => {
+        app.get('/role/:email', verifyJWT, async (req, res) => {
             const email = req.params.email
             const query = { email: email }
             const user = await usersCollection.findOne(query)
@@ -95,6 +99,14 @@ async function run() {
             const result = await bookingCollection.insertOne(booking);
             res.send(result);
         });
+
+        // get product by email
+        app.get('/myBuyers', async (req, res) => {
+            const email = req.query.email;
+            const query = { sellerEmail: email };
+            const bikes = await bookingCollection.find(query).toArray();
+            res.send(bikes);
+        })
 
         // get bike 
         app.get('/allBikes', async (req, res) => {
@@ -127,12 +139,36 @@ async function run() {
             res.send(result);
         })
 
-        // post ads 
-        app.post('/addAdvertise', async (req, res) => {
-            const advertise = req.body;
-            const result = await advertiseCollection.insertOne(advertise);
+        app.put('/addAdvertise/:id', async (req, res) => {
+            const id = req.params.id;
+            const body = req.body;
+            const filter = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    ads: body.ads
+                }
+            }
+            const result = await bikesCollection.updateOne(filter, updatedDoc, options);
             res.send(result);
         });
+
+        // get ads 
+        app.get('/getAdvertise', async (req, res) => {
+            const query = { ads: true }
+            const result = await bikesCollection.find(query).toArray()
+            res.send(result);
+        });
+
+        // all seller 
+        app.get('/allSeller', async (req, res) => {
+            const email = req.query.email;
+            const query = { sellerEmail: email };
+            const bikes = await usersCollection.find(query).toArray();
+            res.send(bikes);
+        })
+
+
     }
     finally {
 
