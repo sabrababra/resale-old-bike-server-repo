@@ -161,13 +161,12 @@ async function run() {
         });
 
         // all seller 
-        app.get('/allSeller', async (req, res) => {
-            const email = req.query.email;
-            const query = { sellerEmail: email };
-            const bikes = await usersCollection.find(query).toArray();
-            res.send(bikes);
+        app.get('/allSellersAndBuyers', async (req, res) => {
+            const role = req.query.role;
+            const query = { role: role };
+            const seller = await usersCollection.find(query).toArray();
+            res.send(seller);
         })
-
 
     }
     finally {
