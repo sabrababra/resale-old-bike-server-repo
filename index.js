@@ -103,6 +103,14 @@ async function run() {
             res.send(bikes);
         })
 
+        // get product by email
+        app.get('/myProduct', async (req, res) => {
+            const email = req.query.email;
+            const query = { sellerEmail: email };
+            const bikes = await bikesCollection.find(query).toArray();
+            res.send(bikes);
+        })
+
         // post bike 
         app.post('/addProduct', async (req, res) => {
             const product = req.body;
