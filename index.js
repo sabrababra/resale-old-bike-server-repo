@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
@@ -40,6 +40,7 @@ async function run() {
         const bikesCollection = client.db('resaleBike').collection('bikeCollection');
         const usersCollection = client.db('resaleBike').collection('user');
         const bookingCollection = client.db('resaleBike').collection('booking');
+        const advertiseCollection = client.db('resaleBike').collection('advertise');
 
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email;
@@ -62,7 +63,7 @@ async function run() {
             }
             res.status(403).send({ token: '' })
         })
-        
+
         //add & update  user
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -115,6 +116,21 @@ async function run() {
         app.post('/addProduct', async (req, res) => {
             const product = req.body;
             const result = await bikesCollection.insertOne(product);
+            res.send(result);
+        });
+
+        // delete bike 
+        app.delete('/deleteAdvertise/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await bikesCollection.deleteOne(filter);
+            res.send(result);
+        })
+
+        // post ads 
+        app.post('/addAdvertise', async (req, res) => {
+            const advertise = req.body;
+            const result = await advertiseCollection.insertOne(advertise);
             res.send(result);
         });
     }
