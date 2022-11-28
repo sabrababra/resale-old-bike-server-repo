@@ -180,8 +180,8 @@ async function run() {
         app.patch('/verifySeller', async (req, res) => {
             const email = req.query.email;
             const body = req.body;
-            const filter = { email:email }
-            const filterSeller = { sellerEmail:email }
+            const filter = { email: email }
+            const filterSeller = { sellerEmail: email }
             const options = { upsert: true };
             const updatedDoc = {
                 $set: {
@@ -202,6 +202,37 @@ async function run() {
             const result = await reportCollection.insertOne(product);
             res.send(result);
         });
+
+        // getReport
+        app.get('/getReport', async (req, res) => {
+            const query = {}
+            const result = await reportCollection.find(query).toArray()
+            res.send(result);
+        });
+
+        // delete report 
+        app.delete('/removeReport/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await reportCollection.deleteOne(filter);
+            res.send(result);
+        })
+
+        // delete post 
+        app.delete('/removePost/:id', async (req, res) => {
+            const id = req.params.id;
+            const productId = req.body.productId
+
+            const filter = { _id: ObjectId(id) };
+
+            const filterProductId = { _id: ObjectId(productId) };
+
+            const result = await reportCollection.deleteOne(filter);
+
+            const resultProduct = await bikesCollection.deleteOne(filterProductId);
+
+            res.send(result);
+        })
 
     }
     finally {
