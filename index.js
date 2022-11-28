@@ -108,6 +108,14 @@ async function run() {
             res.send(bikes);
         })
 
+        // get booking
+        app.get('/booking', async (req, res) => {
+            const email = req.query.email;
+            const query = { buyerEmail: email };
+            const bikes = await bookingCollection.find(query).toArray();
+            res.send(bikes);
+        })
+
         // get bike 
         app.get('/allBikes', async (req, res) => {
             const category = req.query.category;
