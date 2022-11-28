@@ -168,6 +168,14 @@ async function run() {
             res.send(seller);
         })
 
+        // delete bike 
+        app.delete('/deleteSellerAndBuyer/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await usersCollection.deleteOne(filter);
+            res.send(result);
+        })
+
     }
     finally {
 
