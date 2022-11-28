@@ -98,7 +98,7 @@ async function run() {
 
 
         // add booking 
-        app.post('/addBooking', async (req, res) => {
+        app.post('/addBooking',verifyJWT, async (req, res) => {
             const booking = req.body;
             const result = await bookingCollection.insertOne(booking);
             res.send(result);
@@ -137,21 +137,21 @@ async function run() {
         })
 
         // post bike 
-        app.post('/addProduct', async (req, res) => {
+        app.post('/addProduct',verifyJWT, async (req, res) => {
             const product = req.body;
             const result = await bikesCollection.insertOne(product);
             res.send(result);
         });
 
         // delete bike 
-        app.delete('/deleteAdvertise/:id', async (req, res) => {
+        app.delete('/deleteAdvertise/:id',verifyJWT, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await bikesCollection.deleteOne(filter);
             res.send(result);
         })
 
-        app.put('/addAdvertise/:id', async (req, res) => {
+        app.put('/addAdvertise/:id',verifyJWT, async (req, res) => {
             const id = req.params.id;
             const body = req.body;
             const filter = { _id: ObjectId(id) }
@@ -181,7 +181,7 @@ async function run() {
         })
 
         // delete bike 
-        app.delete('/deleteSellerAndBuyer/:id', async (req, res) => {
+        app.delete('/deleteSellerAndBuyer/:id',verifyJWT, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await usersCollection.deleteOne(filter);
@@ -189,7 +189,7 @@ async function run() {
         })
 
         // verify seller 
-        app.patch('/verifySeller', async (req, res) => {
+        app.patch('/verifySeller',verifyJWT, async (req, res) => {
             const email = req.query.email;
             const body = req.body;
             const filter = { email: email }
@@ -209,7 +209,7 @@ async function run() {
 
 
         // addReport
-        app.post('/addReport', async (req, res) => {
+        app.post('/addReport',verifyJWT, async (req, res) => {
             const product = req.body;
             const result = await reportCollection.insertOne(product);
             res.send(result);
@@ -223,7 +223,7 @@ async function run() {
         });
 
         // delete report 
-        app.delete('/removeReport/:id', async (req, res) => {
+        app.delete('/removeReport/:id',verifyJWT, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await reportCollection.deleteOne(filter);
@@ -231,7 +231,7 @@ async function run() {
         })
 
         // delete post 
-        app.delete('/removePost/:id', async (req, res) => {
+        app.delete('/removePost/:id',verifyJWT, async (req, res) => {
             const id = req.params.id;
             const productId = req.body.productId
 
