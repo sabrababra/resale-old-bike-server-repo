@@ -44,7 +44,7 @@ async function run() {
         const bikesCollection = client.db('resaleBike').collection('bikeCollection');
         const usersCollection = client.db('resaleBike').collection('user');
         const bookingCollection = client.db('resaleBike').collection('booking');
-        // const advertiseCollection = client.db('resaleBike').collection('advertise');
+        const reportCollection = client.db('resaleBike').collection('report');
 
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email;
@@ -189,9 +189,17 @@ async function run() {
                 }
             }
             const result = await usersCollection.updateOne(filter, updatedDoc, options);
-            
+
             const postUpdate = await bikesCollection.updateMany(filterSeller, updatedDoc, options);
 
+            res.send(result);
+        });
+
+
+        // addReport
+        app.post('/addReport', async (req, res) => {
+            const product = req.body;
+            const result = await reportCollection.insertOne(product);
             res.send(result);
         });
 
