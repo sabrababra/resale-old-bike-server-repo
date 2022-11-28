@@ -4,7 +4,8 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require("dotenv").config();
 const jwt = require('jsonwebtoken');
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
 
@@ -98,7 +99,7 @@ async function run() {
 
 
         // add booking 
-        app.post('/addBooking',verifyJWT, async (req, res) => {
+        app.post('/addBooking', verifyJWT, async (req, res) => {
             const booking = req.body;
             const result = await bookingCollection.insertOne(booking);
             res.send(result);
@@ -120,6 +121,14 @@ async function run() {
             res.send(bikes);
         })
 
+        // get booking
+        app.get('/singleBooking/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) };
+            const bikes = await bookingCollection.findOne(query);
+            res.send(bikes);
+        })
+
         // get bike 
         app.get('/allBikes', async (req, res) => {
             const category = req.query.category;
@@ -137,21 +146,21 @@ async function run() {
         })
 
         // post bike 
-        app.post('/addProduct',verifyJWT, async (req, res) => {
+        app.post('/addProduct', verifyJWT, async (req, res) => {
             const product = req.body;
             const result = await bikesCollection.insertOne(product);
             res.send(result);
         });
 
         // delete bike 
-        app.delete('/deleteAdvertise/:id',verifyJWT, async (req, res) => {
+        app.delete('/deleteAdvertise/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await bikesCollection.deleteOne(filter);
             res.send(result);
         })
 
-        app.put('/addAdvertise/:id',verifyJWT, async (req, res) => {
+        app.put('/addAdvertise/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const body = req.body;
             const filter = { _id: ObjectId(id) }
@@ -181,7 +190,7 @@ async function run() {
         })
 
         // delete bike 
-        app.delete('/deleteSellerAndBuyer/:id',verifyJWT, async (req, res) => {
+        app.delete('/deleteSellerAndBuyer/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await usersCollection.deleteOne(filter);
@@ -189,7 +198,7 @@ async function run() {
         })
 
         // verify seller 
-        app.patch('/verifySeller',verifyJWT, async (req, res) => {
+        app.patch('/verifySeller', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const body = req.body;
             const filter = { email: email }
@@ -209,7 +218,7 @@ async function run() {
 
 
         // addReport
-        app.post('/addReport',verifyJWT, async (req, res) => {
+        app.post('/addReport', verifyJWT, async (req, res) => {
             const product = req.body;
             const result = await reportCollection.insertOne(product);
             res.send(result);
@@ -223,7 +232,7 @@ async function run() {
         });
 
         // delete report 
-        app.delete('/removeReport/:id',verifyJWT, async (req, res) => {
+        app.delete('/removeReport/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await reportCollection.deleteOne(filter);
@@ -231,7 +240,7 @@ async function run() {
         })
 
         // delete post 
-        app.delete('/removePost/:id',verifyJWT, async (req, res) => {
+        app.delete('/removePost/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const productId = req.body.productId
 
@@ -247,37 +256,34 @@ async function run() {
         })
 
 
+        //create payment 
         app.post('/create-payment-intent', async (req, res) => {
-            const booking = req.body;
-            const price = booking.price;
+            const price = req.body.price;
             const amount = price * 100;
-
             const paymentIntent = await stripe.paymentIntents.create({
-                currency: 'usd',
                 amount: amount,
-                "payment_method_types": [
-                    "card"
-                ]
+                currency: 'usd',
+                payment_method_types: ['card']
             });
-            res.send({
-                clientSecret: paymentIntent.client_secret,
-            });
+            res.send({ clientSecret: paymentIntent.client_secret })
         });
 
-        app.post('/payments', async (req, res) =>{
+
+        app.post('/payments/:id', async (req, res) => {
+            const id = req.params.id
             const payment = req.body;
             const result = await paymentsCollection.insertOne(payment);
-            const id = payment.bookingId
-            const filter = {_id: ObjectId(id)}
+
+            const filter = { _id: ObjectId(id) }
             const updatedDoc = {
                 $set: {
-                    paid: "Paid",
+                    pay: "Paid",
                     transactionId: payment.transactionId
                 }
             }
             const updatedResult = await bookingCollection.updateOne(filter, updatedDoc)
 
-            const filterPost = {_id: ObjectId(payment.productId)}
+            const filterPost = { _id: ObjectId(payment.productId) }
             const updatedDocpost = {
                 $set: {
                     status: "Sold",
