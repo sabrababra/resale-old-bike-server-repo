@@ -176,6 +176,25 @@ async function run() {
             res.send(result);
         })
 
+        // verify seller 
+        app.patch('/verifySeller', async (req, res) => {
+            const email = req.query.email;
+            const body = req.body;
+            const filter = { email:email }
+            const filterSeller = { sellerEmail:email }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    isSellerVerify: body.isSellerVerify
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc, options);
+            
+            const postUpdate = await bikesCollection.updateMany(filterSeller, updatedDoc, options);
+
+            res.send(result);
+        });
+
     }
     finally {
 
